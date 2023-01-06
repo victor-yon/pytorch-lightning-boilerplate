@@ -1,0 +1,10 @@
+# Machine learning
+torch~=1.12
+pytorch-lightning~=1.7
+# Plots
+matplotlib~=3.6
+seaborn~=0.12
+# Data manipulation
+numpy~=1.23
+pandas~=1.5
+# Misc
