@@ -1,6 +1,7 @@
 # Machine learning
 torch~=1.12
 pytorch-lightning~=1.7
+torchmetrics~=0.11
 # Plots
 matplotlib~=3.6
 seaborn~=0.12
