@@ -1,3 +1,9 @@
+# Configruation file, it is specific to the current environement, therefore it should be committed
+config.yaml
+
+# The default output directory path
+out/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,venv
 
@@ -52,9 +58,6 @@ cmake-build-*/
 
 # File-based project format
 *.iws
-
-# IntelliJ
-out/
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
