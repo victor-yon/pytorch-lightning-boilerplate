@@ -3,7 +3,7 @@ from typing import Tuple
 from pytorch_lightning.cli import LightningCLI
 
 from datasets.project_dataset import ProjectDataModule
-from models.project_model import ProjectModel
+from models.base_model import BaseModel
 from utils.trainer import ModelTrainer
 
 
@@ -14,7 +14,7 @@ class RunCLI(LightningCLI):
         The automatic run is disabled to have more control over the run process.
         The default configuration file is set as "./config.yaml".
         """
-        super().__init__(model_class=ProjectModel,
+        super().__init__(model_class=BaseModel,
                          datamodule_class=ProjectDataModule,
                          trainer_class=ModelTrainer,
                          run=False,
@@ -22,7 +22,7 @@ class RunCLI(LightningCLI):
                          save_config_kwargs={'overwrite': True},
                          subclass_mode_model=True)
 
-    def get_run_objects(self) -> Tuple[ProjectModel, ProjectDataModule, ModelTrainer]:
+    def get_run_objects(self) -> Tuple[BaseModel, ProjectDataModule, ModelTrainer]:
         """
         Returns:
             All the objects initialized according to the configuration file and the program arguments.

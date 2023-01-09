@@ -7,7 +7,7 @@ from torchmetrics import MetricCollection
 from plots.test_results import plot_test_results
 
 
-class ProjectModel(LightningModule):
+class BaseModel(LightningModule):
     """
     Abstract class that define the model logic.
     """
