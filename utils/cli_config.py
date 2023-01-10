@@ -7,12 +7,12 @@ from models.base_model import BaseModel
 from utils.trainer import ModelTrainer
 
 
-class RunCLI(LightningCLI):
+class CLIConfig(LightningCLI):
     def __init__(self):
         """
         Custom Command Line Interface with default values set for the project.
+        By default, override configurations with user file: "./config.yaml".
         The automatic run is disabled to have more control over the run process.
-        The default configuration file is set as "./config.yaml".
         """
         super().__init__(model_class=BaseModel,
                          datamodule_class=ProjectDataModule,

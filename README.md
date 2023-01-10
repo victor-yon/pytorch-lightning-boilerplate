@@ -2,27 +2,35 @@
 
 A template to quickly set up a deep learning project with the library PyTorch and the framework Lightning.
 
-The lightning framework claim to not required any boilerplate, but I believe that a boilerplate can still save some time
-to set up the file structure and integrate some good practices such as configuration file.
+Lightning authors claim that their framework replaces a boilerplate, but I believe that a boilerplate still allows to
+save time and helps to maintain good practices.
+
+This template integrate these features:
+
+* Interchangeable models and datasets (using
+  standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
+* Configuration file to change and keep track of most of the meta-parameters (
+  using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
 
 ## Quickstart template checklist
 
 - [ ] Edit the [dataloader](datasets/project_dataset.py) to load your project data.
 - [ ] Edit the [base model](models/base_model.py) to define your own model logic. If you plan to implement multiple
   models, extend this class.
-- [ ] Check remaining `# TODO` comments in the code
-- [ ] Remove this section from the [README](README.md)
+- [ ] Check remaining `# TODO` comments in the code.
+- [ ] Remove this section from the [README](README.md), and complete project name and description.
 
 ---
 
-<div align="center">    
+[//]: # (TODO: Remove section above)
+<div align="center">
 
 # Project Name
 
-[![Paper](http://img.shields.io/badge/paper-arxiv.1001.2234-B31B1B.svg)](https://www.nature.com/articles/nature14539)
-[![Conference](http://img.shields.io/badge/NeurIPS-2019-4b44ce.svg)](https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018)
-[![Conference](http://img.shields.io/badge/ICLR-2019-4b44ce.svg)](https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018)
-[![Conference](http://img.shields.io/badge/AnyConference-year-4b44ce.svg)](https://papers.nips.cc/book/advances-in-neural-information-processing-systems-31-2018)
+[//]: # (TODO: Set up badges with https://shields.io/)
+[![Python 3.10](https://img.shields.io/badge/Python-3.10-informational)](https://docs.python.org/3/whatsnew/3.10.html)
+[![Article](https://img.shields.io/badge/Article-doi.xxx-success)](https://www.doi.org/)
+[![Conference](https://img.shields.io/badge/Conference-doi.xxx-success)](https://www.doi.org/)
 
 </div>
 
@@ -51,12 +59,13 @@ pip install -r requirements.txt
 ### Create configuration file
 
 ```bash
-# Create empty configuration file
+# Create an empty configuration file
 touch config.yaml
 ```
 
-Alternatively you can initialize a configuration file filled with default values using this
-command: `python run.py --print_config > config.yaml`
+> **Note:**
+> Alternatively you can initialize a configuration file filled with default values with this
+> command: `python run.py --print_config > config.yaml`
 
 ### Run the main script
 
@@ -68,7 +77,36 @@ source venv/bin/activate
 python run.py
 ```
 
-Note for IntelliJ users: The default run scripts should be automatically detected.
+> **Note for IntelliJ users:**
+> The default run scripts should be automatically detected by the IDE.
 
-### Citation   
+## Files structure
 
+```graphql
+  ├─ datasets/ - # Dataset and dataloader impelmentations
+  ├─ models/ - # Model impelmentations (including baselines)
+  ├─ plots/ - # Every code related to plot generation
+  ├─ utils/ - # Utility functions used in various places
+  │  ├─ cli_config.py - # Command line interface and configuration file handling
+  │  ├─ setup_env.py - # Place to initialize the environement for various components (logging, plotting, ...)
+  │  └─ trainer.py - #  Logic related to the model training
+  ├─ README.md - # General documentation (this page)
+  ├─ requirements.txt - # List of pip packages required for this project
+  └─ run.py - # Main script to run the project
+```
+
+## Citation
+
+[//]: # (TODO: Add citation information and/or create a CITATION.cff file, see https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-citation-files)
+
+```bibtex
+@software{<main_author>_<year>,
+  author = {<last_name_1>, <first_name_1> and <last_name_2>, <first_name_2>},
+  doi = {<doi_url>},
+  title = {{<Project title>}},
+  url = {https://github.com/<github_name>/<project_name>},
+  version = {1.0.0},
+  year = {<year>},
+  month = {<month>}
+}
+```
