@@ -11,6 +11,8 @@ This template integrate these features:
   standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
 * Configuration file to change and keep track of most of the meta-parameters (
   using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
+* Metrics integration (
+  using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
 
 ## Quickstart template checklist
 
@@ -90,6 +92,7 @@ python run.py
   │  ├─ cli_config.py - # Command line interface and configuration file handling
   │  ├─ setup_env.py - # Place to initialize the environement for various components (logging, plotting, ...)
   │  └─ trainer.py - #  Logic related to the model training
+  ├─ config.yaml - # Configuration file (has to be created manually)
   ├─ README.md - # General documentation (this page)
   ├─ requirements.txt - # List of pip packages required for this project
   └─ run.py - # Main script to run the project

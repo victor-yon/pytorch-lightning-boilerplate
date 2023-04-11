@@ -1,15 +1,15 @@
+from pathlib import Path
 from typing import Optional
 
+import tensorflow_datasets as tfds
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, Dataset, random_split
 
 
 class ProjectDataset(Dataset):
     def __init__(self, data, labels):
-        self.data = None
-        self.labels = None
-
-        raise NotImplementedError  # TODO implement dataset
+        self.data = data
+        self.labels = labels
 
     def __len__(self):
         return len(self.data)
@@ -19,9 +19,9 @@ class ProjectDataset(Dataset):
 
 
 class ProjectDataModule(LightningDataModule):
-    def __init__(self, data_file_path: str, batch_size: int = 256):
+    def __init__(self, data_file_path: str = 'data/', batch_size: int = 256):
         super().__init__()
-        self.data_file_path = data_file_path
+        self.data_file_path = Path(data_file_path)
         self.batch_size = batch_size
 
         # Objects to store the different datasets instances
