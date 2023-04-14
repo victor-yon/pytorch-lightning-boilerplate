@@ -1,15 +1,22 @@
-from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
-import tensorflow_datasets as tfds
-from pytorch_lightning import LightningDataModule
+import openml
+from lightning.pytorch import LightningDataModule
+from numpy.typing import NDArray
 from torch.utils.data import DataLoader, Dataset, random_split
 
 
 class ProjectDataset(Dataset):
-    def __init__(self, data, labels):
-        self.data = data
-        self.labels = labels
+    def __init__(self, data: NDArray[float], labels: NDArray[int]):
+        """
+        Create a dataset instance.
+
+        Args:
+            data: The data row that will be used as input for the model.
+            labels: The labels for each row.
+        """
+        self.data: NDArray[float] = data
+        self.labels: NDArray[float] = labels
 
     def __len__(self):
         return len(self.data)
@@ -19,10 +26,19 @@ class ProjectDataset(Dataset):
 
 
 class ProjectDataModule(LightningDataModule):
-    def __init__(self, data_file_path: str = 'data/', batch_size: int = 256):
+    def __init__(self, dataset_name: str = 'mnist_784', batch_size: int = 256):
+        """
+        Create a data module instance, that contains the different subsets of the dataset.
+
+        Args:
+            dataset_name: The name of the dataset to download from OpenML.
+                See https://www.openml.org/search?type=data&status=active for the list of available datasets.
+            batch_size: The size of the batch to use for the training.
+        """
         super().__init__()
-        self.data_file_path = Path(data_file_path)
-        self.batch_size = batch_size
+        self.dataset_name: str = dataset_name
+        self.classes: Optional[List] = None
+        self.batch_size: int = batch_size
 
         # Objects to store the different datasets instances
         self.dataset: Optional[ProjectDataset] = None
@@ -30,11 +46,15 @@ class ProjectDataModule(LightningDataModule):
         self.dataset_test: Optional[ProjectDataset] = None
         self.dataset_val: Optional[ProjectDataset] = None
 
-        raise NotImplementedError  # TODO implement data loader
+    def prepare_data(self):
+        # Download dataset if needed
+        openml.datasets.get_dataset(self.dataset_name)
 
     def setup(self, stage: Optional[str]) -> None:
-        # TODO load the data
-        data, labels = None, None
+        # Load the dataset from cache as numpy array
+        numpy_data, _, _, _ = openml.datasets.get_dataset(self.dataset_name).get_data(dataset_format='array')
+        data = numpy_data[:, 0:-1]
+        labels = numpy_data[:, -1].astype(int)
 
         # Create the global dataset
         self.dataset = ProjectDataset(data, labels)
@@ -44,7 +64,7 @@ class ProjectDataModule(LightningDataModule):
         # FIXME more robust splitting
         # TODO [template] splitting ratio from setting
         self.dataset_train, self.dataset_test, self.dataset_val = random_split(
-            self.dataset, [int(0.8 * nb), int(0.1 * nb), int(0.1 * nb)]
+            self.dataset, [int(0.7 * nb), int(0.2 * nb), int(0.1 * nb)]
         )
 
         # TODO [template] log the dataset sizes

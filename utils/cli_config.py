@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from pytorch_lightning.cli import LightningArgumentParser, LightningCLI
+from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
 
 from datasets.project_dataset import ProjectDataModule
 from models.base_model import BaseModel

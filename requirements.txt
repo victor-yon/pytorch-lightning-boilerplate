@@ -1,7 +1,8 @@
 # Machine learning
 torch~=2.0
-pytorch-lightning~=2.0
+lightning~=2.0
 torchmetrics~=0.11
+openml~=0.13  # For loading standard datasets, could be removed if you use your own data
 # Plots
 matplotlib~=3.6
 seaborn~=0.12
@@ -9,3 +10,4 @@ seaborn~=0.12
 numpy~=1.23
 pandas~=2.0
 # Misc
+jsonargparse[signatures]~=4.20

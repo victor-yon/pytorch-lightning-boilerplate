@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pytorch_lightning import LightningModule
+from lightning.pytorch import LightningModule
 from torch import Tensor, argmax
 from torch.optim import Adam
 from torchmetrics import Accuracy, F1Score, MetricCollection, Precision, Recall
@@ -10,11 +10,18 @@ from plots.test_results import plot_test_results
 
 class BaseModel(LightningModule):
     """
-    Abstract class that define the model logic.
+    Neural Network classifier model.
     """
 
-    def __init__(self):
+    def __init__(self, learning_rate: float = 0.001):
+        """
+        Create a class that define the model logic.
+
+        Args:
+            learning_rate: The learning rate to use for the optimizer.
+        """
         super().__init__()
+        self.learning_rate = learning_rate
 
         # TODO add/edit metrics
         # See https://torchmetrics.readthedocs.io/en/latest/ for available metrics
@@ -58,7 +65,7 @@ class BaseModel(LightningModule):
     def test_step(self, batch, batch_idx):
         self.evaluate(batch, stage='test')
 
-    def test_epoch_end(self, _) -> None:
+    def on_test_end(self) -> None:
         plot_test_results(self.metrics)
 
     def configure_optimizers(self):
