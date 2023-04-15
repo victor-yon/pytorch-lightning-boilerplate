@@ -26,6 +26,8 @@ class ProjectDataset(Dataset):
 
 
 class ProjectDataModule(LightningDataModule):
+    """ The dataset """
+
     def __init__(self, dataset_name: str = 'mnist_784', batch_size: int = 256):
         """
         Create a data module instance, that contains the different subsets of the dataset.

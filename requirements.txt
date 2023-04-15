@@ -9,5 +9,8 @@ seaborn~=0.12
 # Data manipulation
 numpy~=1.23
 pandas~=2.0
+# Loggers
+wandb~=0.14
 # Misc
 jsonargparse[signatures]~=4.20
+pyyaml~=6.0
