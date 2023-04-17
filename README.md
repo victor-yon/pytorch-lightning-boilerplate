@@ -30,7 +30,7 @@ This template integrate these features:
 # Project Name
 
 [//]: # (TODO: Set up badges with https://shields.io/)
-[![Python 3.10](https://img.shields.io/badge/Python-3.10-informational)](https://docs.python.org/3/whatsnew/3.10.html)
+[![Python 3.11](https://img.shields.io/badge/Python-3.11-informational)](https://docs.python.org/3/whatsnew/3.11.html)
 [![Article](https://img.shields.io/badge/Article-doi.xxx-success)](https://www.doi.org/)
 [![Conference](https://img.shields.io/badge/Conference-doi.xxx-success)](https://www.doi.org/)
 

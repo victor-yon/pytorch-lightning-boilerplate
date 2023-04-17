@@ -4,10 +4,10 @@ lightning~=2.0
 torchmetrics~=0.11
 openml~=0.13  # For loading standard datasets, could be removed if you use your own data
 # Plots
-matplotlib~=3.6
+matplotlib~=3.7
 seaborn~=0.12
 # Data manipulation
-numpy~=1.23
+numpy~=1.24
 pandas~=2.0
 # Loggers
 wandb~=0.14

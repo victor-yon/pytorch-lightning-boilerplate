@@ -58,23 +58,53 @@ class CLIConfig(LightningCLI):
         # arg_group.add_argument('--group_name.arg_name', type=int, default=42, help='Documentation here')
 
     def instantiate_trainer(self, **kwargs: Any) -> Trainer:
+        """
+        Override the default trainer instantiation to instantiation the output manager before the trainer.
+        """
+
         # Create the output manager just before the trainer initialization, because we need to liked it to the trainer.
         self.output_manager = self._get(self.config_init, 'output')
+        # Log the configuration
+        self.output_manager.log_config(self.get_config_dict())
+
         kwargs['output_manager'] = self.output_manager
         # TODO [template] remove output_manager from trainer CLI arguments
         return super().instantiate_trainer(**kwargs)
 
+    def get_config_dict(self) -> dict:
+        """
+        :return: The current configuration as a dictionary with the secret arguments hidden and
+            special arguments removed.
+        """
+
+        def recursive_process_dict(ref_d: dict, d: dict) -> None:
+            """
+            Recursively copy the config dictionary to hide secret arguments and remove special arguments.
+            We assume there is no circular reference.
+
+            :param ref_d: The reference config dictionary
+            :param d: The dictionary to fill
+            """
+            for key, value in ref_d.items():
+                if isinstance(value, dict):
+                    d[key] = dict()
+                    recursive_process_dict(value, d[key])
+                else:
+                    # Skip spacial arguments
+                    if key.startswith('__'):
+                        continue
+                    # Hide secret argument values
+                    d[key] = value if key not in _SECRET_ARGS or not value else '<secret>'
+
+        processed_dict = dict()
+        recursive_process_dict(self.config.as_dict(), processed_dict)
+
+        return processed_dict
+
     def __str__(self):
         # default_dict = self.parser.get_defaults().as_dict()
 
-        config_dict = dict()
-        for key, value in self.config.as_dict().items():
-            # Skip spacial arguments
-            if key.startswith('__'):
-                continue
-
-            # Hide secret argument values
-            config_dict[key] = value if key not in _SECRET_ARGS else '***'
+        config_dict = self.get_config_dict()
 
         # Remove entry which have the default value
         # FIXME [template] this is not working because the values loaded from the config file are considered as default

@@ -5,7 +5,7 @@ from typing import Iterable, Optional
 import wandb
 from lightning.pytorch.loggers import Logger, WandbLogger
 
-PROJECT_NAME = 'demo'  # TODO Set project name
+PROJECT_NAME = 'Demo'  # TODO Set project name
 
 
 class OutputManager:
@@ -56,6 +56,7 @@ class OutputManager:
                     logging.info('Weights & Biases login successful.')
                 else:
                     logging.error('Weights & Biases login failed.')
+
             loggers.append(WandbLogger(project=PROJECT_NAME, name=self.run_name))
 
         return loggers
@@ -77,3 +78,15 @@ class OutputManager:
         except KeyError:
             raise ArgumentError(None, f'Invalid log level "{log_level}". Possible values: ' +
                                 ', '.join(logging.getLevelNamesMapping().keys()))
+
+    def log_config(self, config: dict) -> None:
+        """
+        Log the configuration of the current run.
+
+        Args:
+            config: The configuration to log as a dictionary.
+        """
+        for logger in self.loggers:
+            if isinstance(logger, WandbLogger):
+                # Log run configuration with Weights & Biases
+                logger.experiment.config.update(config)

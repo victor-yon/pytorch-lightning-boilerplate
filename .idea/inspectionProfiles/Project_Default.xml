@@ -2,9 +2,8 @@
   <profile version="1.0">
     <option name="myName" value="Project Default" />
     <inspection_tool class="LatexTooLargeSection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
-    <inspection_tool class="PyChainedComparisonsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true">
-      <option name="ignoreConstantInTheMiddle" value="true" />
-    </inspection_tool>
+    <inspection_tool class="NonAsciiCharacters" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="PyMissingTypeHintsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="PyPackageRequirementsInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="ignoredPackages">
         <value>
@@ -12,13 +11,6 @@
             <item index="0" class="java.lang.String" itemvalue="imbalanced-dataset-sampler" />
           </list>
         </value>
-      </option>
-    </inspection_tool>
-    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ignoredIdentifiers">
-        <list>
-          <option value="tempfile._get_candidate_names" />
-        </list>
       </option>
     </inspection_tool>
   </profile>
