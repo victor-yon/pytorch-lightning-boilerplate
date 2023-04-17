@@ -3,7 +3,7 @@ from typing import Optional
 from lightning.pytorch import LightningModule
 from torch import Tensor, argmax
 from torch.optim import Adam
-from torchmetrics import Accuracy, F1Score, MetricCollection, Precision, Recall
+from torchmetrics import Accuracy, ConfusionMatrix, F1Score, MetricCollection, Precision, Recall
 
 from plots.test_results import plot_test_results
 
@@ -31,7 +31,10 @@ class BaseModel(LightningModule):
             'recall': Recall('multiclass', num_classes=10),
             'f1': F1Score('multiclass', num_classes=10),
         })
+        # Confusion matrix is separated because we want to compute it for test only
+        self.metrics_cm = ConfusionMatrix('multiclass', num_classes=10, normalize='true')
 
+        # The loss function should be defined in the child classes
         self.loss_fn = None
 
     def forward(self, x: [Tensor]) -> [Tensor]:
@@ -43,6 +46,8 @@ class BaseModel(LightningModule):
 
         if stage:
             self.metrics(logits, y, stage=stage)
+            if stage == 'test':
+                self.metrics_cm(logits, y)
 
             # Log metrics and update progress bar
             loss = self.loss_fn(logits, y)
@@ -66,7 +71,7 @@ class BaseModel(LightningModule):
         self.evaluate(batch, stage='test')
 
     def on_test_end(self) -> None:
-        plot_test_results(self.metrics)
+        plot_test_results(self.metrics, self.metrics_cm)
 
     def configure_optimizers(self):
         return Adam(self.parameters(), lr=self.learning_rate)
