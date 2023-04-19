@@ -71,7 +71,7 @@ class BaseModel(LightningModule):
         self.evaluate(batch, stage='test')
 
     def on_test_end(self) -> None:
-        plot_test_results(self.metrics, self.metrics_cm)
+        plot_test_results(self.metrics.to('cpu'), self.metrics_cm.to('cpu'))
 
     def configure_optimizers(self):
         return Adam(self.parameters(), lr=self.learning_rate)
