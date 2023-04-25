@@ -17,7 +17,7 @@ def plot_test_results(metrics: MetricCollection, confusion_matrix: Metric) -> No
         # TODO add/edit plot test results functions
         plot_confusion_matrix(confusion_matrix)
     except Exception as e:
-        logging.error(f'An error occurred while plotting the test results: {e}')
+        logging.error(f'An error occurred while plotting the test results: {e}', exc_info=True)
 
 
 def plot_confusion_matrix(confusion_matrix: Metric) -> None:
@@ -28,8 +28,17 @@ def plot_confusion_matrix(confusion_matrix: Metric) -> None:
         confusion_matrix: The confusion matrix.
     """
     cm_data = confusion_matrix.compute()
-    # Upload the confusion matrix directly to wandb and let it plot it.
-    # Multi-run confusion matrix using predefined plot scheme
-    wandb.log({'confusion_matrix': wandb.plot.confusion_matrix(probs=cm_data,
-                                                               y_true=list(range(10)),
-                                                               class_names=[str(i) for i in range(10)])})
+    nb_classes = len(cm_data)
+
+    flat_data = []
+    for i in range(nb_classes):
+        for j in range(nb_classes):
+            flat_data.append([str(i), str(j), cm_data[i, j]])
+
+    fields = {"Actual": "Actual", "Predicted": "Predicted", "nPredictions": "nPredictions"}
+    wandb.log({'confusion_matrix': wandb.plot_table(
+        "wandb/confusion_matrix/v1",
+        wandb.Table(columns=["Actual", "Predicted", "nPredictions"], data=flat_data),
+        fields,
+        {"title": 'Confusion Matrix'},
+    )})
