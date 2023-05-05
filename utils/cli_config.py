@@ -66,7 +66,9 @@ class CLIConfig(LightningCLI):
         self.output_manager = self._get(self.config_init, 'output')
         # Log the configuration
         self.output_manager.log_config(self.get_config_dict())
-
+        # Link the output manager to the model
+        self.model.output_manager = self.output_manager
+        # Link the output manager to the trainer
         kwargs['output_manager'] = self.output_manager
         # TODO [template] remove output_manager from trainer CLI arguments
         return super().instantiate_trainer(**kwargs)

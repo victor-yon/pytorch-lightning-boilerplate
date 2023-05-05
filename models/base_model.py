@@ -6,6 +6,7 @@ from torch.optim import Adam
 from torchmetrics import Accuracy, ConfusionMatrix, F1Score, MetricCollection, Precision, Recall
 
 from plots.test_results import plot_test_results
+from utils.output_manager import OutputManager
 
 
 class BaseModel(LightningModule):
@@ -22,6 +23,8 @@ class BaseModel(LightningModule):
         """
         super().__init__()
         self.learning_rate = learning_rate
+        # The output manager is linked to the model during the instantiation of the objects.
+        self.output_manager: Optional[OutputManager] = None
 
         # TODO add/edit metrics
         # See https://torchmetrics.readthedocs.io/en/latest/ for available metrics
@@ -71,7 +74,7 @@ class BaseModel(LightningModule):
         self.evaluate(batch, stage='test')
 
     def on_test_end(self) -> None:
-        plot_test_results(self.metrics.to('cpu'), self.metrics_cm.to('cpu'))
+        plot_test_results(self.output_manager, self.metrics.to('cpu'), self.metrics_cm.to('cpu'))
 
     def configure_optimizers(self):
         return Adam(self.parameters(), lr=self.learning_rate)
