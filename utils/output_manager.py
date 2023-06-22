@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Iterable, Optional
 
 import wandb
-from lightning.pytorch.loggers import Logger, WandbLogger
+from lightning.pytorch.loggers import Logger, MLFlowLogger, WandbLogger
+from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 
 PROJECT_NAME = 'Demo'  # TODO Set project name
@@ -22,7 +23,9 @@ class OutputManager:
                  show_plots: bool = False,
                  upload_plots: bool = True,
                  image_latex_format: bool = False,
-                 enable_wandb: bool = True,
+                 enable_mlflow: bool = False,
+                 mlflow_tracking_uri: Optional[str] = None,
+                 enable_wandb: bool = False,
                  wandb_api_key: Optional[str] = None,
                  save_trained_model: bool = True):
         """
@@ -55,6 +58,10 @@ class OutputManager:
         self.upload_plots = upload_plots
         self.image_latex_format = image_latex_format
 
+        # MLFlow configuration
+        self.enable_mlflow = enable_mlflow
+        self.mlflow_tracking_uri = mlflow_tracking_uri
+
         # Weights & Biases configuration
         self.enable_wandb = enable_wandb
         self.wandb_api_key = wandb_api_key
@@ -66,6 +73,11 @@ class OutputManager:
 
     def _init_loggers(self) -> Iterable[Logger]:
         loggers = []
+
+        if self.enable_mlflow:
+            loggers.append(MLFlowLogger(experiment_name=PROJECT_NAME, run_name=self.run_name,
+                                        tracking_uri=self.mlflow_tracking_uri, artifact_location='./out',
+                                        log_model=self.save_trained_model))
 
         if self.enable_wandb:
             if self.wandb_api_key:
@@ -108,6 +120,9 @@ class OutputManager:
             if isinstance(logger, WandbLogger):
                 # Log run configuration with Weights & Biases
                 logger.experiment.config.update(config)
+            if isinstance(logger, MLFlowLogger):
+                # Log run configuration with MLFlow
+                logger.log_hyperparams(config)
 
     def is_plot_enabled(self) -> bool:
         """
@@ -145,9 +160,14 @@ class OutputManager:
             fig.savefig(save_path, dpi=200, transparent=self.image_latex_format)
             logging.debug(f'Plot saved in {save_path}')
 
+        # Upload the plot to the logger service
         if self.upload_plots:
             if self.enable_wandb:
                 wandb.log({file_name: wandb.Image(fig)})
+
+            for logger in self.loggers:
+                if isinstance(logger, MLFlowLogger):
+                    logger.experiment.log_figure(logger.run_id, fig, file_name)
 
         # Plot image or close it
         fig.show() if self.show_plots else plt.close(fig)
