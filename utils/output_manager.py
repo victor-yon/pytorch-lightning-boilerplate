@@ -146,9 +146,10 @@ class OutputManager:
             logging.debug(f'Plot saved in {save_path}')
 
         if self.upload_plots:
-            wandb.log({file_name: wandb.Image(fig)})
+            if self.enable_wandb:
+                wandb.log({file_name: wandb.Image(fig)})
 
         # Plot image or close it
-        fig.show() if self.show_plots else fig.close()
+        fig.show() if self.show_plots else plt.close(fig)
 
         return save_path

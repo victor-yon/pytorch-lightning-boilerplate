@@ -7,12 +7,9 @@ save time and helps to maintain good practices.
 
 This template integrate these features:
 
-* Interchangeable models and datasets (using
-  standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
-* Configuration file to change and keep track of most of the meta-parameters (
-  using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
-* Metrics integration (
-  using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
+* Interchangeable models and datasets (using standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
+* Configuration file to change and keep track of most of the meta-parameters (using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
+* Metrics integration (using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
 
 ## Quickstart template checklist
 
@@ -67,7 +64,7 @@ touch config.yaml
 
 > **Note:**
 > Alternatively you can initialize a configuration file filled with default values with this
-> command: `python run.py --print_config > config.yaml`
+> command: `python run.py --print_config=comments > config.yaml`
 
 ### Run the main script
 

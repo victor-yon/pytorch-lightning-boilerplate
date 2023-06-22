@@ -7,10 +7,11 @@ openml~=0.13  # For loading standard datasets, could be removed if you use your 
 matplotlib~=3.7
 seaborn~=0.12
 # Data manipulation
-numpy~=1.24
+numpy~=1.25
 pandas~=2.0
-# Loggers
+# Loggers (remove the one not used)
+mlflow~=2.4
 wandb~=0.15
 # Misc
-jsonargparse[signatures]~=4.20
+jsonargparse[signatures]~=4.21
 pyyaml~=6.0

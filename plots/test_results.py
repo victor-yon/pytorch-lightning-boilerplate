@@ -25,7 +25,8 @@ def plot_test_results(output_manager: OutputManager, metrics: MetricCollection, 
     try:
         # Example of how to plot the confusion matrix using matplotlib and Weight and Biases.
         plot_confusion_matrix(output_manager, metrics, confusion_matrix)
-        plot_confusion_matrix_wandb(confusion_matrix)
+        if output_manager.enable_wandb:
+            plot_confusion_matrix_wandb(confusion_matrix)
         # TODO add/edit plot test results functions
     except Exception as e:
         logging.error(f'An error occurred while plotting the test results: {e}', exc_info=True)
