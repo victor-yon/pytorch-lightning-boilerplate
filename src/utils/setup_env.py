@@ -1,3 +1,5 @@
+import logging
+
 import seaborn as sns
 
 
@@ -13,7 +15,8 @@ def setup_logger():
     """
     Set up the logger for the project.
     """
-    pass  # TODO [template] setup logger
+    logging.captureWarnings(True)  # Capture warnings with the logging system
+    # TODO [template] setup logger
 
 
 def setup_plot_style():

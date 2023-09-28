@@ -1,7 +1,12 @@
+import logging
+import os
+from math import ceil
 from typing import List, Optional
 
+import numpy as np
 import openml
 from lightning.pytorch import LightningDataModule
+from lightning.pytorch.accelerators import CUDAAccelerator
 from numpy.typing import NDArray
 from torch.utils.data import DataLoader, Dataset, random_split
 
@@ -41,6 +46,7 @@ class ProjectDataModule(LightningDataModule):
         self.dataset_name: str = dataset_name
         self.classes: Optional[List] = None
         self.batch_size: int = batch_size
+        self._nb_workers: int = 0  # Can change later depending on the accelerator
 
         # Objects to store the different datasets instances
         self.dataset: Optional[ProjectDataset] = None
@@ -50,13 +56,26 @@ class ProjectDataModule(LightningDataModule):
 
     def prepare_data(self):
         # Download dataset if needed
-        openml.datasets.get_dataset(self.dataset_name)
+        openml.datasets.get_dataset(self.dataset_name,
+                                    download_data=False,
+                                    download_qualities=False,
+                                    download_features_meta_data=False)
 
     def setup(self, stage: Optional[str]) -> None:
+        # Get the number of workers to use for the data loading
+        self.set_auto_nb_workers()
+
         # Load the dataset from cache as numpy array
-        numpy_data, _, _, _ = openml.datasets.get_dataset(self.dataset_name).get_data(dataset_format='array')
-        data = numpy_data[:, 0:-1]
-        labels = numpy_data[:, -1].astype(int)
+        dataframe, _, _, _ = openml.datasets.get_dataset(
+            self.dataset_name,
+            download_data=False,
+            download_qualities=False,
+            download_features_meta_data=False
+        ).get_data(dataset_format='dataframe')
+        # Get pixels values (all columns except the last one). The type should match model parameters.
+        data = dataframe.iloc[:, :-1].to_numpy(dtype=np.float32)
+        # Get labels (last column)
+        labels = dataframe['class'].to_numpy(dtype=int)
 
         # Create the global dataset
         self.dataset = ProjectDataset(data, labels)
@@ -72,10 +91,35 @@ class ProjectDataModule(LightningDataModule):
         # TODO [template] log the dataset sizes
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_train, shuffle=True, batch_size=self.batch_size)
+        return DataLoader(self.dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_val, shuffle=False, batch_size=self.batch_size)
+        return DataLoader(self.dataset_val, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_test, shuffle=False, batch_size=self.batch_size)
+        return DataLoader(self.dataset_test, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
+
+    def set_auto_nb_workers(self) -> None:
+        """
+        Automatically search for the optimal number of workers (processes that load the data), depending on the
+        accelerator type and the number of available CPU.
+        """
+        if self.trainer is None:
+            raise ValueError('The trainer must be linked to the data module before setting the number of workers.')
+
+        accelerator = self.trainer.accelerator
+
+        if isinstance(accelerator, CUDAAccelerator):
+            # CUDA doesn't support multithreading for data loading
+            self._nb_workers = 0
+        else:
+            # Try to detect the number of available CPU
+            # noinspection PyBroadException
+            try:
+                nb_workers = len(os.sched_getaffinity(0))
+            except Exception:
+                nb_workers = os.cpu_count()
+
+            self._nb_workers = ceil(nb_workers / 2)  # The optimal number seems to be half of the cores
+
+        logging.debug(f'Number of workers for data loading: {self._nb_workers}')

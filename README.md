@@ -60,10 +60,10 @@ pip install -r requirements.txt
 ### Create configuration file
 
 ```bash
-# Create an empty configuration file
+# Create an empty configuration file, or ...
 touch config.yaml
-# Or initialise with default values and documentation
-python run.py --print_config=comments > config.yaml
+# ... initialise with default values and documentation
+python src/run.py --print_config=comments > config.yaml
 ```
 
 ### Run the main script
