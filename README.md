@@ -10,6 +10,7 @@ This template integrates the following features:
 * Interchangeable models and datasets (using standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
 * Configuration file to change and keep track of most of the meta-parameters (using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
 * Metrics integration (using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
+* Automatic logging to [Weights & Biases](https://wandb.ai/) and / or [MLFlow](https://mlflow.org)
 
 ## Quickstart template checklist
 

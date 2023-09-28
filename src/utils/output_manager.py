@@ -81,7 +81,7 @@ class OutputManager:
 
         if self.enable_wandb:
             if self.wandb_api_key:
-                # Log user with API key
+                # Log user with an API key
                 if wandb.login(key=self.wandb_api_key):
                     logging.info('Weights & Biases login successful.')
                 else:

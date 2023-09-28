@@ -61,7 +61,6 @@ class CLIConfig(LightningCLI):
         """
         Override the default trainer instantiation to instantiation the output manager before the trainer.
         """
-
         # Create the output manager just before the trainer initialization, because we need to liked it to the trainer.
         self.output_manager = self._get(self.config_init, 'output')
         # Log the configuration
