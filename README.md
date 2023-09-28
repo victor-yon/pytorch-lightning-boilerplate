@@ -2,10 +2,10 @@
 
 A template to quickly set up a deep learning project with the library PyTorch and the framework Lightning.
 
-Lightning authors claim that their framework replaces a boilerplate, but I believe that a boilerplate still allows to
-save time and helps to maintain good practices.
+Lightning authors claim that their framework replaces a boilerplate,
+but I believe that a boilerplate still allows saving time and helps to maintain good practices.
 
-This template integrate these features:
+This template integrates the following features:
 
 * Interchangeable models and datasets (using standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
 * Configuration file to change and keep track of most of the meta-parameters (using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
@@ -13,8 +13,8 @@ This template integrate these features:
 
 ## Quickstart template checklist
 
-- [ ] Edit the [dataloader](datasets/project_dataset.py) to load your project data.
-- [ ] Edit the [base model](models/base_model.py) to define your own model logic. If you plan to implement multiple
+- [ ] Edit the [dataloader](src/datasets/project_dataset.py) to load your project data.
+- [ ] Edit the [base model](src/models/base_model.py) to define your own model logic. If you plan to implement multiple
   models, extend this class.
 - [ ] Check remaining `# TODO` comments in the code.
 - [ ] Remove this section from the [README](README.md), and complete project name and description.
@@ -82,17 +82,19 @@ python run.py
 ## Files structure
 
 ```graphql
-  ├─ datasets/ - # Dataset and dataloader impelmentations
-  ├─ models/ - # Model impelmentations (including baselines)
-  ├─ plots/ - # Every code related to plot generation
-  ├─ utils/ - # Utility functions used in various places
-  │  ├─ cli_config.py - # Command line interface and configuration file handling
-  │  ├─ setup_env.py - # Place to initialize the environement for various components (logging, plotting, ...)
-  │  └─ trainer.py - #  Logic related to the model training
-  ├─ config.yaml - # Configuration file (has to be created manually)
+  ├─ out/ - # Output directory (created automatically)
+  ├─ src/ - # Contain the source code
+  │  ├─ datasets/ - # Dataset and dataloader impelmentations
+  │  ├─ models/ - # Model impelmentations (including baselines)
+  │  ├─ plots/ - # Every code related to plot generation
+  │  ├─ utils/ - # Utility functions used in various places
+  │  │  ├─ cli_config.py - # Command line interface and configuration file handling
+  │  │  ├─ setup_env.py - # Place to initialize the environement for various components
+  │  │  └─ trainer.py - #  Logic related to the model training
+  │  └─ run.py - # Main script to run the project
   ├─ README.md - # General documentation (this page)
   ├─ requirements.txt - # List of pip packages required for this project
-  └─ run.py - # Main script to run the project
+  └─ config.yaml - # Configuration file (has to be created manually)
 ```
 
 ## Citation
