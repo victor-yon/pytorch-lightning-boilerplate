@@ -19,9 +19,9 @@ class ModelTrainer(Trainer):
         Args:
             max_epochs: The number of training epochs.
             val_check_interval: The number of epochs between each validation. Set to None to disable validation.
-            accelerator: The type of hardware accelerator to use for the training. Can be any from the following
-                list: "cpu", "gpu", "tpu", "ipu", "hpu", "mps, "auto"
-                (see pytorch-lightning Trainer class for more information).
+            accelerator: The type of hardware accelerator to use for training and testing. Can be any from the following
+                list: "cpu", "gpu", "tpu", "ipu", "hpu", "mps, "auto" (see pytorch-lightning Trainer class for more
+                information).
             output_manager: A reference to the output manager of this project.
         """
         super().__init__(max_epochs=max_epochs,

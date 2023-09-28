@@ -40,8 +40,10 @@ class OutputManager:
             save_plots: If True, the plots will be locally saved as a file.
             show_plots: If True, the plots will show when ready.
             upload_plots: If True, the plots will be uploaded to the logger service.
-            image_latex_format: If True, the plots will be saved as vectoriel image for a better integration with latex
-                document. No effect if save_plots is False. Do not affect the uploaded version.
+            image_latex_format: If True, the plots will be saved as vectoriel image for a better integration in a latex
+                document. No effect if save_plots is False. It does not affect the uploaded version.
+            enable_mlflow: If True, the MLFlow logger will be setup and used.
+            mlflow_tracking_uri: The URI of the MLFlow server to use.
             enable_wandb: If True, the Weights & Biases logger will be setup and used.
             wandb_api_key: The API key to use to log in Weights & Biases.
             save_trained_model: If True, the trained model parameters will be saved in the logger service.
@@ -100,7 +102,7 @@ class OutputManager:
             log_level: The log level name to parse.
 
         Returns:
-            The integer correspond to a valid log level.
+            An integer that corresponds to a valid log level.
         """
         try:
             # Try to parse the log level as an integer
@@ -126,7 +128,7 @@ class OutputManager:
 
     def is_plot_enabled(self) -> bool:
         """
-        Check if it is necessary to run the plots code.
+        Check if it is necessary to run the plot code.
 
         Returns:
             True at least on of the following option is enabled: show_plots, save_plots, upload_plots.
@@ -136,12 +138,12 @@ class OutputManager:
     def process_plot(self, fig: Figure, file_name: str) -> Path | None:
         """
         Process a matplotlib figure.
-        The image will be: saved locally as a file, uploaded to the logger service and/or shown depending on the
+        The image will be saved locally as a file, uploaded to the logger service and/or shown depending on the
         configuration.
 
         Args:
             fig: The figure to save.
-            file_name: The output file name (no extension). Spaces and slashes will be replaced by underscores.
+            file_name: The output file name (no extension). Underscores will replace spaces and slashes.
 
         Returns: The path where the plot is saved as a local file, or None if not saved.
         """

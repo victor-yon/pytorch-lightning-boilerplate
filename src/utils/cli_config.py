@@ -35,7 +35,7 @@ class CLIConfig(LightningCLI):
         """
         Returns:
             All the objects initialized according to the configuration file and the program arguments.
-            They are ready to be used for the training and testing.
+            They are ready to be used for training and testing.
         """
         return self.model, self.datamodule, self.trainer
 
@@ -61,7 +61,7 @@ class CLIConfig(LightningCLI):
         """
         Override the default trainer instantiation to instantiation the output manager before the trainer.
         """
-        # Create the output manager just before the trainer initialization, because we need to liked it to the trainer.
+        # Create the output manager just before the trainer initialization, because we need to link it to the trainer.
         self.output_manager = self._get(self.config_init, 'output')
         # Log the configuration
         self.output_manager.log_config(self.get_config_dict())

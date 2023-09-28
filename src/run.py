@@ -5,7 +5,7 @@ if __name__ == '__main__':
     # Set up the environment and context
     setup_environment()
 
-    # Initialize the model, the dataset and the trainer according to the configuration file and the program arguments
+    # Initialize the model, the dataset, and the trainer, according to the configuration file and the program arguments
     model, datamodule, trainer = CLIConfig().get_run_objects()
 
     # Training

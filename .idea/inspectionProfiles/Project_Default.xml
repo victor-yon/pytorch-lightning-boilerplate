@@ -1,6 +1,7 @@
 <component name="InspectionProjectProfileManager">
   <profile version="1.0">
     <option name="myName" value="Project Default" />
+    <inspection_tool class="HtmlDeprecatedAttribute" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="LatexTooLargeSection" enabled="false" level="WEAK WARNING" enabled_by_default="false" />
     <inspection_tool class="NonAsciiCharacters" enabled="false" level="WARNING" enabled_by_default="false" />
     <inspection_tool class="PyMissingTypeHintsInspection" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
@@ -13,5 +14,6 @@
         </value>
       </option>
     </inspection_tool>
+    <inspection_tool class="StructuralWrap" enabled="false" level="TYPO" enabled_by_default="false" />
   </profile>
 </component>

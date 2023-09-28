@@ -16,7 +16,7 @@ class BaseModel(LightningModule):
 
     def __init__(self, learning_rate: float = 0.001):
         """
-        Create a class that define the model logic.
+        Create a class that defines the model logic.
 
         Args:
             learning_rate: The learning rate to use for the optimizer.

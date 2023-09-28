@@ -77,7 +77,7 @@ python run.py
 ```
 
 > **Note for IntelliJ users:**
-> The default run scripts should be automatically detected by the IDE.
+> The IDE should automatically detect the default run configuration.
 
 ## Files structure
 

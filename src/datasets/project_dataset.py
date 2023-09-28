@@ -55,7 +55,7 @@ class ProjectDataModule(LightningDataModule):
         self.dataset_val: Optional[ProjectDataset] = None
 
     def prepare_data(self):
-        # Download dataset if needed
+        # Download dataset if no cached
         openml.datasets.get_dataset(self.dataset_name,
                                     download_data=False,
                                     download_qualities=False,
@@ -65,7 +65,7 @@ class ProjectDataModule(LightningDataModule):
         # Get the number of workers to use for the data loading
         self.set_auto_nb_workers()
 
-        # Load the dataset from cache as numpy array
+        # Load the dataset from cache as a pandas dataframe
         dataframe, _, _, _ = openml.datasets.get_dataset(
             self.dataset_name,
             download_data=False,
