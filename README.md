@@ -48,8 +48,9 @@ Project description.
 git clone https://github.com/<github_name>/<project_name>.git
 cd <project_name>
 
-# Optional but recommended: create a virtual environment
-python3 -m venv venv
+# Optional but recommended: create a virtual environment with python 3.11
+python --version # Should be 3.11 or higher
+python -m venv venv
 source venv/bin/activate
 
 # Install project dependencies
@@ -61,11 +62,9 @@ pip install -r requirements.txt
 ```bash
 # Create an empty configuration file
 touch config.yaml
+# Or initialise with default values and documentation
+python run.py --print_config=comments > config.yaml
 ```
-
-> **Note:**
-> Alternatively you can initialize a configuration file filled with default values with this
-> command: `python run.py --print_config=comments > config.yaml`
 
 ### Run the main script
 
@@ -84,6 +83,7 @@ python run.py
 
 ```graphql
   ├─ out/ - # Output directory (created automatically)
+  │
   ├─ src/ - # Contain the source code
   │  ├─ datasets/ - # Dataset and dataloader impelmentations
   │  ├─ models/ - # Model impelmentations (including baselines)
@@ -92,7 +92,9 @@ python run.py
   │  │  ├─ cli_config.py - # Command line interface and configuration file handling
   │  │  ├─ setup_env.py - # Place to initialize the environement for various components
   │  │  └─ trainer.py - #  Logic related to the model training
+  │  │
   │  └─ run.py - # Main script to run the project
+  │
   ├─ README.md - # General documentation (this page)
   ├─ requirements.txt - # List of pip packages required for this project
   └─ config.yaml - # Configuration file (has to be created manually)
