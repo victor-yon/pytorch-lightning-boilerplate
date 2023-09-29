@@ -91,8 +91,8 @@ class CLIConfig(LightningCLI):
                     d[key] = dict()
                     recursive_process_dict(value, d[key])
                 else:
-                    # Skip spacial arguments
-                    if key.startswith('__'):
+                    # Skip spacial arguments and configuration file path
+                    if key.startswith('__') or key == 'config':
                         continue
                     # Hide secret argument values
                     d[key] = value if key not in _SECRET_ARGS or not value else '<secret>'

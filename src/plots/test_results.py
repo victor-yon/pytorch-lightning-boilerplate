@@ -1,7 +1,6 @@
-import logging
-
 import seaborn as sns
 import wandb
+from loguru import logger
 from torchmetrics import Metric, MetricCollection
 
 from utils.output_manager import OutputManager
@@ -29,7 +28,7 @@ def plot_test_results(output_manager: OutputManager, metrics: MetricCollection, 
             plot_confusion_matrix_wandb(confusion_matrix)
         # TODO add/edit plot test results functions
     except Exception as e:
-        logging.error(f'An error occurred while plotting the test results: {e}', exc_info=True)
+        logger.error(f'An error occurred while plotting the test results: {e}', exc_info=True)
 
 
 def plot_confusion_matrix(output_manager: OutputManager, metrics: MetricCollection, confusion_matrix: Metric,

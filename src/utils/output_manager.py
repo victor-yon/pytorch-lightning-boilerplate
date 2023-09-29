@@ -1,15 +1,23 @@
+from __future__ import annotations
+
 import logging
 import re
+import sys
 from argparse import ArgumentError
 from pathlib import Path
 from typing import Iterable, Optional
 
+import loguru
 import wandb
+import yaml
 from lightning.pytorch.loggers import Logger, MLFlowLogger, WandbLogger
+from loguru import logger
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 
 PROJECT_NAME = 'Demo'  # TODO Set project name
+LOG_FORMAT_CONSOLE = '{time:HH:mm:ss.SSS} |<level>{level:>8}</level>| <level>{message}</level>'
+LOG_FORMAT_FILE = '{time:YYYY-MM-DD HH:mm:ss.SSSS} {level:>8} ({file}:{line}) {message}'
 
 
 class OutputManager:
@@ -17,8 +25,8 @@ class OutputManager:
 
     def __init__(self,
                  run_name: str = 'tmp',
-                 log_level_console: str = 'info',
-                 log_level_files: str = 'debug',
+                 log_level_console: Optional[str] = 'info',
+                 log_level_files: Optional[str] = 'debug',
                  save_plots: bool = True,
                  show_plots: bool = False,
                  upload_plots: bool = True,
@@ -33,10 +41,10 @@ class OutputManager:
 
         Args:
             run_name: The name of the run. It will be used to name the log directory.
-            log_level_console: The minimum logging level to show in the standard output.
-                Possible values: CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
-            log_level_files: The minimum logging level to write in the log file.
-                Possible values: CRITICAL, ERROR, WARNING, INFO, DEBUG, NOTSET
+            log_level_console: The minimum logging level to show in the standard output. Disabled if None or empty.
+                Possible values: CRITICAL, ERROR, WARNING, SUCCESS, INFO, DEBUG, TRACE
+            log_level_files: The minimum logging level to write in the log file. Disabled if None or empty.
+                Possible values: CRITICAL, ERROR, WARNING, SUCCESS, INFO, DEBUG, TRACE
             save_plots: If True, the plots will be locally saved as a file.
             show_plots: If True, the plots will show when ready.
             upload_plots: If True, the plots will be uploaded to the logger service.
@@ -71,45 +79,47 @@ class OutputManager:
         # Other configuration
         self.save_trained_model = save_trained_model
 
+        # Local out directory
+        self._out_dir = Path('out', self.run_name)
+        self._out_dir.mkdir(parents=True, exist_ok=True)
+
         self.loggers = self._init_loggers()
 
     def _init_loggers(self) -> Iterable[Logger]:
-        loggers = []
+        """
+        Initialize every logger (console, local file, Weights & Biases, MLFlow), depending on the current configuration.
+        Returns: The list of remote loggers.
+        """
 
+        # Setup local loggers (console and file)
+        local_loggers = []
+        if self.log_level_console is not None:
+            local_loggers.append(dict(sink=sys.stdout, colorize=True, level=self.log_level_console.name,
+                                      format=LOG_FORMAT_CONSOLE))
+        if self.log_level_files is not None:
+            local_loggers.append(dict(sink=self._out_dir / 'run.log', level=self.log_level_files.name,
+                                      format=LOG_FORMAT_FILE))
+
+        logger.configure(handlers=local_loggers)
+
+        # Setup remote loggers (MLFlow and Weights & Biases)
+        remote_loggers = []
         if self.enable_mlflow:
-            loggers.append(MLFlowLogger(experiment_name=PROJECT_NAME, run_name=self.run_name,
-                                        tracking_uri=self.mlflow_tracking_uri, artifact_location='./out',
-                                        log_model=self.save_trained_model))
+            remote_loggers.append(MLFlowLogger(experiment_name=PROJECT_NAME, run_name=self.run_name,
+                                               tracking_uri=self.mlflow_tracking_uri, artifact_location='./out',
+                                               log_model=self.save_trained_model))
 
         if self.enable_wandb:
             if self.wandb_api_key:
                 # Log user with an API key
                 if wandb.login(key=self.wandb_api_key):
-                    logging.info('Weights & Biases login successful.')
+                    logger.info('Weights & Biases login successful.')
                 else:
-                    logging.error('Weights & Biases login failed.')
+                    logger.error('Weights & Biases login failed.')
 
-            loggers.append(WandbLogger(project=PROJECT_NAME, name=self.run_name))
+            remote_loggers.append(WandbLogger(project=PROJECT_NAME, name=self.run_name))
 
-        return loggers
-
-    @staticmethod
-    def _parse_log_level(log_level: str) -> int:
-        """
-        Parse a log level from a string to an integer.
-
-        Args:
-            log_level: The log level name to parse.
-
-        Returns:
-            An integer that corresponds to a valid log level.
-        """
-        try:
-            # Try to parse the log level as an integer
-            return logging.getLevelNamesMapping()[log_level.strip().upper()]
-        except KeyError:
-            raise ArgumentError(None, f'Invalid log level "{log_level}". Possible values: ' +
-                                ', '.join(logging.getLevelNamesMapping().keys()))
+        return remote_loggers
 
     def log_config(self, config: dict) -> None:
         """
@@ -118,13 +128,16 @@ class OutputManager:
         Args:
             config: The configuration to log as a dictionary.
         """
-        for logger in self.loggers:
-            if isinstance(logger, WandbLogger):
+
+        logger.debug(f'Run configuration:\n{yaml.dump(config, allow_unicode=True)}')
+
+        for log in self.loggers:
+            if isinstance(log, WandbLogger):
                 # Log run configuration with Weights & Biases
-                logger.experiment.config.update(config)
-            if isinstance(logger, MLFlowLogger):
+                log.experiment.config.update(config)
+            if isinstance(log, MLFlowLogger):
                 # Log run configuration with MLFlow
-                logger.log_hyperparams(config)
+                log.log_hyperparams(config)
 
     def is_plot_enabled(self) -> bool:
         """
@@ -160,18 +173,64 @@ class OutputManager:
             save_path.parent.mkdir(parents=True, exist_ok=True)
 
             fig.savefig(save_path, dpi=200, transparent=self.image_latex_format)
-            logging.debug(f'Plot saved in {save_path}')
+            logger.trace(f'Plot saved in "{save_path}"')
 
         # Upload the plot to the logger service
         if self.upload_plots:
             if self.enable_wandb:
                 wandb.log({file_name: wandb.Image(fig)})
 
-            for logger in self.loggers:
-                if isinstance(logger, MLFlowLogger):
-                    logger.experiment.log_figure(logger.run_id, fig, file_name)
+            for log in self.loggers:
+                if isinstance(log, MLFlowLogger):
+                    log.experiment.log_figure(log.run_id, fig, file_name)
 
         # Plot image or close it
         fig.show() if self.show_plots else plt.close(fig)
 
         return save_path
+
+    @staticmethod
+    def _parse_log_level(log_level: Optional[str]) -> Optional[loguru.Level]:
+        """
+        Parse a log level from a string.
+
+        Args:
+            log_level: The log level name to parse.
+
+        Returns:
+            A tuple that represents a valid log level, or None if no logging.
+        """
+
+        if log_level is None or log_level.strip() == '':
+            return None
+
+        try:
+            # Try to parse the log level as an integer
+            return logger.level(log_level.strip().upper())
+        except ValueError:
+            raise ArgumentError(None, f'Invalid log level "{log_level}". Possible values: ' +
+                                ', '.join(['CRITICAL', 'ERROR', 'WARNING', 'SUCCESS', 'INFO', 'DEBUG', 'TRACE']))
+
+    @staticmethod
+    def init_default_console_logger() -> None:
+        """
+        Initialize a default console logger configuration.
+        It should be called as early as possible in the program to make sure it catches all the logs.
+        Once the user configuration is loaded, the handler will be overridden.
+        """
+        logging.captureWarnings(True)  # Capture warnings with the logging system
+
+        logger.configure(
+            # Temporary handler that will be overridden after the user configuration is loaded
+            handlers=[dict(sink=sys.stdout, colorize=True, level='TRACE', format=LOG_FORMAT_CONSOLE)],
+            # Update levels colors
+            levels=[
+                dict(name='CRITICAL', color='<red><bold>'),
+                dict(name='ERROR', color='<red>'),
+                dict(name='WARNING', color='<yellow>'),
+                dict(name='SUCCESS', color='<green><bold>'),
+                dict(name='INFO', color=''),
+                dict(name='DEBUG', color='<fg #8C8C8C>'),  # light gray
+                dict(name='TRACE', color='<fg #8C8C8C><italic>')  # light gray
+            ]
+        )

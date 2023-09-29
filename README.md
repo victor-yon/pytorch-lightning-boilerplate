@@ -8,9 +8,11 @@ but I believe that a boilerplate still allows saving time and helps to maintain 
 This template integrates the following features:
 
 * Interchangeable models and datasets (using standard [Lightning modules](https://pytorch-lightning.readthedocs.io/en/stable/common/lightning_module.html))
-* Configuration file to change and keep track of most of the meta-parameters (using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
+* Configuration file and CLI to change and keep track of most of the meta-parameters (
+  using [Lightning CLI](https://pytorch-lightning.readthedocs.io/en/stable/common/hyperparameters.html))
 * Metrics integration (using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
-* Automatic logging to [Weights & Biases](https://wandb.ai/) and / or [MLFlow](https://mlflow.org)
+* Preconfigured local logging (console and file) with [Loguru](https://github.com/Delgan/loguru), and optional remote
+  logging ([Weights & Biases](https://wandb.ai/) or [MLFlow](https://mlflow.org))
 
 ## Quickstart template checklist
 
@@ -90,6 +92,7 @@ python run.py
   │  ├─ plots/ - # Every code related to plot generation
   │  ├─ utils/ - # Utility functions used in various places
   │  │  ├─ cli_config.py - # Command line interface and configuration file handling
+  │  │  ├─ output_manager.py - # Manager local and remote logging
   │  │  ├─ setup_env.py - # Place to initialize the environement for various components
   │  │  └─ trainer.py - #  Logic related to the model training
   │  │

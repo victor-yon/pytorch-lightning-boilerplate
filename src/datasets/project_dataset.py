@@ -1,4 +1,3 @@
-import logging
 import os
 from math import ceil
 from typing import List, Optional
@@ -7,6 +6,7 @@ import numpy as np
 import openml
 from lightning.pytorch import LightningDataModule
 from lightning.pytorch.accelerators import CUDAAccelerator
+from loguru import logger
 from numpy.typing import NDArray
 from torch.utils.data import DataLoader, Dataset, random_split
 
@@ -88,7 +88,10 @@ class ProjectDataModule(LightningDataModule):
             self.dataset, [int(0.7 * nb), int(0.2 * nb), int(0.1 * nb)]
         )
 
-        # TODO [template] log the dataset sizes
+        logger.info(f'Dataset "{self.dataset_name}" loaded ({len(self.dataset):,d} rows).\n'
+                    f'\t- {len(self.dataset_train):,d} training rows\n'
+                    f'\t- {len(self.dataset_test):,d} testing rows\n'
+                    f'\t- {len(self.dataset_val):,d} validation rows')
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(self.dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)
@@ -122,4 +125,4 @@ class ProjectDataModule(LightningDataModule):
 
             self._nb_workers = ceil(nb_workers / 2)  # The optimal number seems to be half of the cores
 
-        logging.debug(f'Number of workers for data loading: {self._nb_workers}')
+        logger.debug(f'Number of workers for data loading: {self._nb_workers}')

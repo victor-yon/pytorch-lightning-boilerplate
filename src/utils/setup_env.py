@@ -1,22 +1,14 @@
-import logging
-
 import seaborn as sns
+
+from utils.output_manager import OutputManager
 
 
 def setup_environment():
     """
     Set up the environment and context for the project.
     """
-    setup_logger()
+    OutputManager.init_default_console_logger()
     setup_plot_style()
-
-
-def setup_logger():
-    """
-    Set up the logger for the project.
-    """
-    logging.captureWarnings(True)  # Capture warnings with the logging system
-    # TODO [template] setup logger
 
 
 def setup_plot_style():
