@@ -261,5 +261,12 @@ class OutputManager:
 
                 logger.opt(exception=record.exc_info).log(level, message.strip())
 
+        # Redirect default logging messages to Loguru
         logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-        logging.getLogger('matplotlib').setLevel(logging.WARNING)  # Ignore matplotlib info and debug messages
+
+        # Redirect pytorch-lightning logging messages to Loguru
+        logging.getLogger("lightning.pytorch").addHandler(InterceptHandler())
+        logging.getLogger("lightning.pytorch").handlers.clear()
+
+        # Ignore matplotlib info and debug messages (too verbose)
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)
