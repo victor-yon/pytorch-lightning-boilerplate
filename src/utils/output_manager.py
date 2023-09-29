@@ -16,8 +16,13 @@ from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 
 PROJECT_NAME = 'Demo'  # TODO Set project name
+
+# Log format
 LOG_FORMAT_CONSOLE = '{time:HH:mm:ss.SSS} |<level>{level:>8}</level>| <level>{message}</level>'
 LOG_FORMAT_FILE = '{time:YYYY-MM-DD HH:mm:ss.SSSS} {level:>8} ({file}:{line}) {message}'
+
+# Reduce the logging level of info and debug messages since logging from external libraries is less important
+EXTERNAL_LEVEL_MAP = {'CRITICAL': 'CRITICAL', 'ERROR': 'ERROR', 'WARNING': 'WARNING', 'INFO': 'DEBUG', 'DEBUG': 'TRACE'}
 
 
 class OutputManager:
@@ -234,3 +239,27 @@ class OutputManager:
                 dict(name='TRACE', color='<fg #8C8C8C><italic>')  # light gray
             ]
         )
+
+        class InterceptHandler(logging.Handler):
+            """ Intercept standard logging messages and redirect them to Loguru. """
+
+            def emit(self, record: logging.LogRecord) -> None:
+                """ Override the emit method. """
+                # Get the corresponding Loguru level if it exists
+                level: str | int
+                try:
+                    level = EXTERNAL_LEVEL_MAP[logger.level(record.levelname).name]
+                except ValueError:
+                    level = record.levelno
+
+                message = record.getMessage()
+
+                # Clean up user warnings
+                if level == 'WARNING':
+                    message = re.sub(r'.*UserWarning: ', '', message)
+                    message = re.sub(r'rank_zero_warn\(.*', '', message)
+
+                logger.opt(exception=record.exc_info).log(level, message.strip())
+
+        logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
+        logging.getLogger('matplotlib').setLevel(logging.WARNING)  # Ignore matplotlib info and debug messages
