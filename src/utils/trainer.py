@@ -1,6 +1,7 @@
 from typing import Optional
 
 from lightning.pytorch import Trainer
+from lightning.pytorch.callbacks import RichProgressBar, ModelSummary
 
 from utils.output_manager import OutputManager
 
@@ -27,7 +28,8 @@ class ModelTrainer(Trainer):
         super().__init__(max_epochs=max_epochs,
                          val_check_interval=val_check_interval,
                          accelerator=accelerator,
-                         logger=output_manager.loggers)
+                         logger=output_manager.loggers,
+                         callbacks=[RichProgressBar(), ModelSummary()])
 
         self.output_manager = output_manager
 

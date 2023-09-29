@@ -58,6 +58,7 @@ class ProjectDataModule(LightningDataModule):
         # Generate a seed for the dataset split to make sure that every call of setup() will return the sets, even in
         # distributed scenarios. It should also guarantee the reproducibility if the global seed is fixed.
         self._split_seed = random.randint(0, int(1e12))
+        logger.debug(f'Dataset split seed: {self._split_seed}')
 
         # Can change later depending on the accelerator type
         self._nb_workers: int = 0

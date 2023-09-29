@@ -265,8 +265,10 @@ class OutputManager:
         logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
         # Redirect pytorch-lightning logging messages to Loguru
-        logging.getLogger("lightning.pytorch").addHandler(InterceptHandler())
         logging.getLogger("lightning.pytorch").handlers.clear()
+        logging.getLogger("lightning.pytorch").addHandler(InterceptHandler())
+        logging.getLogger('lightning.fabric').handlers.clear()
+        logging.getLogger('lightning.fabric').addHandler(InterceptHandler())
 
         # Ignore matplotlib info and debug messages (too verbose)
         logging.getLogger('matplotlib').setLevel(logging.WARNING)

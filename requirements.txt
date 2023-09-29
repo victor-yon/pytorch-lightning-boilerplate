@@ -18,3 +18,4 @@ jsonargparse[signatures]~=4.25
 pyyaml~=6.0
 ruyaml~=0.91
 tabulate~=0.9
+rich~=13.5
