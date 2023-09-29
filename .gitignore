@@ -4,6 +4,9 @@ config.yaml
 # The default output directory path
 out/
 
+# Pycharm IDE files that we don't want to commit
+.idea/csv-editor.xml
+
 # Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,venv
 # Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,venv
 

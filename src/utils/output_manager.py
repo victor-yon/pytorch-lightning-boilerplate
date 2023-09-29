@@ -15,6 +15,8 @@ from loguru import logger
 from matplotlib import pyplot as plt
 from matplotlib.figure import Figure
 
+from utils.local_logger import LocalLogger
+
 PROJECT_NAME = 'Demo'  # TODO Set project name
 
 # Log format
@@ -84,10 +86,6 @@ class OutputManager:
         # Other configuration
         self.save_trained_model = save_trained_model
 
-        # Local out directory
-        self._out_dir = Path('out', self.run_name)
-        self._out_dir.mkdir(parents=True, exist_ok=True)
-
         self.loggers = self._init_loggers()
 
     def _init_loggers(self) -> Iterable[Logger]:
@@ -96,19 +94,22 @@ class OutputManager:
         Returns: The list of remote loggers.
         """
 
+        remote_loggers = []
+        local_logger = LocalLogger(name=self.run_name)
+        remote_loggers.append(local_logger)
+
         # Setup local loggers (console and file)
         local_loggers = []
         if self.log_level_console is not None:
             local_loggers.append(dict(sink=sys.stdout, colorize=True, level=self.log_level_console.name,
                                       format=LOG_FORMAT_CONSOLE))
         if self.log_level_files is not None:
-            local_loggers.append(dict(sink=self._out_dir / 'run.log', level=self.log_level_files.name,
-                                      format=LOG_FORMAT_FILE))
+            log_file = Path(local_logger.log_dir) / 'run.log'
+            local_loggers.append(dict(sink=log_file, level=self.log_level_files.name, format=LOG_FORMAT_FILE))
 
         logger.configure(handlers=local_loggers)
 
         # Setup remote loggers (MLFlow and Weights & Biases)
-        remote_loggers = []
         if self.enable_mlflow:
             remote_loggers.append(MLFlowLogger(experiment_name=PROJECT_NAME, run_name=self.run_name,
                                                tracking_uri=self.mlflow_tracking_uri, artifact_location='./out',
@@ -122,7 +123,7 @@ class OutputManager:
                 else:
                     logger.error('Weights & Biases login failed.')
 
-            remote_loggers.append(WandbLogger(project=PROJECT_NAME, name=self.run_name))
+            remote_loggers.append(WandbLogger(project=PROJECT_NAME, name=self.run_name, save_dir='./out'))
 
         return remote_loggers
 
@@ -138,10 +139,10 @@ class OutputManager:
 
         for log in self.loggers:
             if isinstance(log, WandbLogger):
-                # Log run configuration with Weights & Biases
+                # Log run configuration with Weights & Biases (do not use default log_hyperparams)
                 log.experiment.config.update(config)
-            if isinstance(log, MLFlowLogger):
-                # Log run configuration with MLFlow
+            else:
+                # Log run configuration
                 log.log_hyperparams(config)
 
     def is_plot_enabled(self) -> bool:
@@ -153,7 +154,7 @@ class OutputManager:
         """
         return self.show_plots or self.save_plots or self.upload_plots
 
-    def process_plot(self, fig: Figure, file_name: str) -> Path | None:
+    def process_plot(self, fig: Figure, file_name: str) -> None:
         """
         Process a matplotlib figure.
         The image will be saved locally as a file, uploaded to the logger service and/or shown depending on the
@@ -165,34 +166,17 @@ class OutputManager:
 
         Returns: The path where the plot is saved as a local file, or None if not saved.
         """
-
-        # Clean the file name
-        file_name = re.sub(r'[\s\\/]+', '_', file_name.strip())
-
-        save_path = None
-        if self.save_plots:
-            out_format = 'svg' if self.image_latex_format else 'png'
-            # TODO [template] Find a way to save the plot locally
-            # save_path = get_save_path(Path(OUT_DIR, self.run_name, 'img'), file_name, out_format, allow_overwrite)
-            save_path = Path('out', 'tmp', 'img', f'{file_name}.{out_format}')
-            save_path.parent.mkdir(parents=True, exist_ok=True)
-
-            fig.savefig(save_path, dpi=200, transparent=self.image_latex_format)
-            logger.trace(f'Plot saved in "{save_path}"')
-
-        # Upload the plot to the logger service
-        if self.upload_plots:
-            if self.enable_wandb:
-                wandb.log({file_name: wandb.Image(fig)})
-
-            for log in self.loggers:
-                if isinstance(log, MLFlowLogger):
-                    log.experiment.log_figure(log.run_id, fig, file_name)
+        # Upload/save the plot with the logger service
+        for log in self.loggers:
+            if isinstance(log, MLFlowLogger) and self.upload_plots:
+                log.experiment.log_figure(log.run_id, fig, file_name)
+            if isinstance(log, WandbLogger) and self.upload_plots:
+                log.experiment.log({file_name: wandb.Image(fig)})
+            if isinstance(log, LocalLogger) and self.save_plots:
+                log.log_image(fig, file_name, self.image_latex_format)
 
         # Plot image or close it
         fig.show() if self.show_plots else plt.close(fig)
-
-        return save_path
 
     @staticmethod
     def _parse_log_level(log_level: Optional[str]) -> Optional[loguru.Level]:
@@ -227,7 +211,7 @@ class OutputManager:
 
         logger.configure(
             # Temporary handler that will be overridden after the user configuration is loaded
-            handlers=[dict(sink=sys.stdout, colorize=True, level='TRACE', format=LOG_FORMAT_CONSOLE)],
+            handlers=[dict(sink=sys.stdout, colorize=True, level='INFO', format=LOG_FORMAT_CONSOLE)],
             # Update levels colors
             levels=[
                 dict(name='CRITICAL', color='<red><bold>'),
@@ -265,10 +249,9 @@ class OutputManager:
         logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
 
         # Redirect pytorch-lightning logging messages to Loguru
-        logging.getLogger("lightning.pytorch").handlers.clear()
-        logging.getLogger("lightning.pytorch").addHandler(InterceptHandler())
-        logging.getLogger('lightning.fabric').handlers.clear()
-        logging.getLogger('lightning.fabric').addHandler(InterceptHandler())
+        for logger_name in ['lightning.pytorch', 'lightning.fabric', 'pytorch_lightning']:
+            logging.getLogger(logger_name).handlers.clear()
+            logging.getLogger(logger_name).addHandler(InterceptHandler())
 
         # Ignore matplotlib info and debug messages (too verbose)
         logging.getLogger('matplotlib').setLevel(logging.WARNING)
