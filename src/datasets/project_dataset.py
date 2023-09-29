@@ -1,4 +1,5 @@
 import os
+import random
 from math import ceil
 from typing import List, Optional
 
@@ -8,6 +9,8 @@ from lightning.pytorch import LightningDataModule
 from lightning.pytorch.accelerators import CUDAAccelerator
 from loguru import logger
 from numpy.typing import NDArray
+from tabulate import tabulate
+from torch import Generator
 from torch.utils.data import DataLoader, Dataset, random_split
 
 
@@ -46,26 +49,26 @@ class ProjectDataModule(LightningDataModule):
         self.dataset_name: str = dataset_name
         self.classes: Optional[List] = None
         self.batch_size: int = batch_size
-        self._nb_workers: int = 0  # Can change later depending on the accelerator
 
         # Objects to store the different datasets instances
-        self.dataset: Optional[ProjectDataset] = None
         self.dataset_train: Optional[ProjectDataset] = None
         self.dataset_test: Optional[ProjectDataset] = None
         self.dataset_val: Optional[ProjectDataset] = None
 
-    def prepare_data(self):
-        # Download dataset if no cached
-        openml.datasets.get_dataset(self.dataset_name,
-                                    download_data=False,
-                                    download_qualities=False,
-                                    download_features_meta_data=False)
+        # Generate a seed for the dataset split to make sure that every call of setup() will return the sets, even in
+        # distributed scenarios. It should also guarantee the reproducibility if the global seed is fixed.
+        self._split_seed = random.randint(0, int(1e12))
 
-    def setup(self, stage: Optional[str]) -> None:
-        # Get the number of workers to use for the data loading
-        self.set_auto_nb_workers()
+        # Can change later depending on the accelerator type
+        self._nb_workers: int = 0
 
-        # Load the dataset from cache as a pandas dataframe
+    def download_dataset(self) -> ProjectDataset:
+        """
+        Download the dataset from OpenML and create the dataset.
+        Returns:
+            An instance of the full dataset.
+        """
+        # Download dataset or load if from cache
         dataframe, _, _, _ = openml.datasets.get_dataset(
             self.dataset_name,
             download_data=False,
@@ -78,20 +81,38 @@ class ProjectDataModule(LightningDataModule):
         labels = dataframe['class'].to_numpy(dtype=int)
 
         # Create the global dataset
-        self.dataset = ProjectDataset(data, labels)
+        return ProjectDataset(data, labels)
 
-        # Split into subsets
-        nb = len(self.dataset)
-        # FIXME more robust splitting
-        # TODO [template] splitting ratio from setting
-        self.dataset_train, self.dataset_test, self.dataset_val = random_split(
-            self.dataset, [int(0.7 * nb), int(0.2 * nb), int(0.1 * nb)]
-        )
+    def prepare_data(self) -> None:
+        """
+        Download and prepare the dataset for future use.
+        It is important to not change the state of the object here, as it might be called in parallel devices.
+        """
+        # Download dataset if no already cached
+        self.download_dataset()
 
-        logger.info(f'Dataset "{self.dataset_name}" loaded ({len(self.dataset):,d} rows).\n'
-                    f'\t- {len(self.dataset_train):,d} training rows\n'
-                    f'\t- {len(self.dataset_test):,d} testing rows\n'
-                    f'\t- {len(self.dataset_val):,d} validation rows')
+    def setup(self, stage: Optional[str]) -> None:
+        # Get the number of workers to use for the data loading
+        self.set_auto_nb_workers()
+
+        # Load the dataset from cache
+        dataset = self.download_dataset()
+
+        # Split the dataset sets, with a fixed seed for reproducibility and consistency in case of distributed runs
+        train_set, test_set, val_set = random_split(dataset, [0.7, 0.2, 0.1],
+                                                    Generator().manual_seed(self._split_seed))
+
+        # Assign train/val datasets for use in dataloaders
+        if stage == "fit":
+            self.log_sets_info(train_set, test_set, val_set)  # Log information about the dataset
+            self.dataset_train = train_set
+            self.dataset_val = val_set
+            logger.debug(f'Train and validation datasets loaded')
+
+        # Assign test dataset for use in dataloader(s)
+        if stage == "test":
+            self.dataset_test = test_set
+            logger.debug(f'Train and validation datasets loaded')
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(self.dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)
@@ -126,3 +147,19 @@ class ProjectDataModule(LightningDataModule):
             self._nb_workers = ceil(nb_workers / 2)  # The optimal number seems to be half of the cores
 
         logger.debug(f'Number of workers for data loading: {self._nb_workers}')
+
+    def log_sets_info(self, train_set, test_set, valid_set) -> None:
+        """
+        Log information about the dataset and the different subsets.
+        """
+        train_size = len(train_set)
+        test_size = len(test_set)
+        val_size = len(valid_set)
+        total_size = train_size + test_size + val_size
+
+        logger.info(f'Dataset "{self.dataset_name}" loaded\n' +
+                    tabulate({
+                        "Dataset": ["Train", "Test", "Validation", "Total"],
+                        "Size": [train_size, test_size, val_size, total_size],
+                        "Percentage": [train_size / total_size, test_size / total_size, val_size / total_size, 1]
+                    }, headers="keys", tablefmt="mixed_outline", floatfmt=".1%"))
