@@ -1,4 +1,8 @@
+<div align="center">
+
 # Pytorch Lightning Boilerplate
+
+</div>
 
 A template to quickly set up a deep learning project with the library PyTorch and the framework Lightning.
 
@@ -13,6 +17,7 @@ This template integrates the following features:
 * Metrics integration (using [Lightning metrics](https://pytorch-lightning.readthedocs.io/en/stable/extensions/metrics.html))
 * Preconfigured local logging (console and file) with [Loguru](https://github.com/Delgan/loguru), and optional remote
   logging ([Weights & Biases](https://wandb.ai/) or [MLFlow](https://mlflow.org))
+* Basic unit tests to quickly detect implementation errors
 
 ## Quickstart template checklist
 
@@ -20,7 +25,8 @@ This template integrates the following features:
 - [ ] Edit the [base model](src/models/base_model.py) to define your own model logic. If you plan to implement multiple
   models, extend this class.
 - [ ] Check remaining `# TODO` comments in the code.
-- [ ] Remove this section from the [README](README.md), and complete project name and description.
+- [ ] Run the unit tests ([./test](./test)) to validate the current implementation.
+- [ ] Remove this section from the [README](README.md), and complete the project name and description below.
 
 ---
 

@@ -11,7 +11,7 @@ from loguru import logger
 from numpy.typing import NDArray
 from tabulate import tabulate
 from torch import Generator
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, random_split, Subset
 
 
 class ProjectDataset(Dataset):
@@ -51,9 +51,9 @@ class ProjectDataModule(LightningDataModule):
         self.batch_size: int = batch_size
 
         # Objects to store the different datasets instances
-        self.dataset_train: Optional[ProjectDataset] = None
-        self.dataset_test: Optional[ProjectDataset] = None
-        self.dataset_val: Optional[ProjectDataset] = None
+        self._dataset_train: Optional[Subset[ProjectDataset]] = None
+        self._dataset_test: Optional[Subset[ProjectDataset]] = None
+        self._dataset_val: Optional[Subset[ProjectDataset]] = None
 
         # Generate a seed for the dataset split to make sure that every call of setup() will return the sets, even in
         # distributed scenarios. It should also guarantee the reproducibility if the global seed is fixed.
@@ -106,23 +106,23 @@ class ProjectDataModule(LightningDataModule):
         # Assign train/val datasets for use in dataloaders
         if stage == "fit":
             self.log_sets_info(train_set, test_set, val_set)  # Log information about the dataset
-            self.dataset_train = train_set
-            self.dataset_val = val_set
+            self._dataset_train = train_set
+            self._dataset_val = val_set
             logger.debug(f'Train and validation datasets loaded')
 
         # Assign test dataset for use in dataloader(s)
         if stage == "test":
-            self.dataset_test = test_set
+            self._dataset_test = test_set
             logger.debug(f'Train and validation datasets loaded')
 
     def train_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)
+        return DataLoader(self._dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)
 
     def val_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_val, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
+        return DataLoader(self._dataset_val, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
 
     def test_dataloader(self) -> DataLoader:
-        return DataLoader(self.dataset_test, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
+        return DataLoader(self._dataset_test, shuffle=False, batch_size=self.batch_size, num_workers=self._nb_workers)
 
     def set_auto_nb_workers(self) -> None:
         """
@@ -130,7 +130,8 @@ class ProjectDataModule(LightningDataModule):
         accelerator type and the number of available CPU.
         """
         if self.trainer is None:
-            raise ValueError('The trainer must be linked to the data module before setting the number of workers.')
+            # The trainer is not initialized yet, so we can't get the accelerator type
+            return
 
         accelerator = self.trainer.accelerator
 
