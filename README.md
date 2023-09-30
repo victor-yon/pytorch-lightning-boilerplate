@@ -97,12 +97,9 @@ python run.py
   │  ├─ models/ - # Model impelmentations (including baselines)
   │  ├─ plots/ - # Every code related to plot generation
   │  ├─ utils/ - # Utility functions used in various places
-  │  │  ├─ cli_config.py - # Command line interface and configuration file handling
-  │  │  ├─ output_manager.py - # Manager local and remote logging
-  │  │  ├─ setup_env.py - # Place to initialize the environement for various components
-  │  │  └─ trainer.py - #  Logic related to the model training
-  │  │
   │  └─ run.py - # Main script to run the project
+  │
+  ├─ test/ - # Simple unit tests
   │
   ├─ README.md - # General documentation (this page)
   ├─ requirements.txt - # List of pip packages required for this project
