@@ -1,9 +1,15 @@
 import unittest
 
+from lightning import seed_everything
+
 from datasets.project_dataset import ProjectDataModule
 
 
 class DatasetTest(unittest.TestCase):
+    def setUp(self) -> None:
+        super().setUp()
+        # Fix the seed for the tests
+        seed_everything(42)
 
     def test_loading_train_data(self):
         datamodule = ProjectDataModule()

@@ -99,7 +99,7 @@ python run.py
   │  ├─ utils/ - # Utility functions used in various places
   │  └─ run.py - # Main script to run the project
   │
-  ├─ test/ - # Simple unit tests
+  ├─ tests/ - # Basic unit tests to quickly validate the implementation
   │
   ├─ README.md - # General documentation (this page)
   ├─ requirements.txt - # List of pip packages required for this project
