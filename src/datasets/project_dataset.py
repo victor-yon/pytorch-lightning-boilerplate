@@ -113,7 +113,7 @@ class ProjectDataModule(LightningDataModule):
         # Assign test dataset for use in dataloader(s)
         if stage == "test":
             self._dataset_test = test_set
-            logger.debug(f'Train and validation datasets loaded')
+            logger.debug(f'Test dataset loaded')
 
     def train_dataloader(self) -> DataLoader:
         return DataLoader(self._dataset_train, shuffle=True, batch_size=self.batch_size, num_workers=self._nb_workers)

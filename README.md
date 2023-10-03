@@ -21,6 +21,7 @@ This template integrates the following features:
 
 ## Quickstart template checklist
 
+- [ ] Follow the "__How to run__" section of the [README](README.md).
 - [ ] Edit the [dataloader](src/datasets/project_dataset.py) to load your project data.
 - [ ] Edit the [base model](src/models/base_model.py) to define your own model logic. If you plan to implement multiple
   models, extend this class.
