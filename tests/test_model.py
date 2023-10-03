@@ -6,7 +6,7 @@ from datasets.project_dataset import ProjectDataModule
 from models.simple_classifier import SimpleClassifier
 
 
-class ModelTest(unittest.TestCase):
+class TestModel(unittest.TestCase):
     def setUp(self) -> None:
         super().setUp()
         # Fix the seed for the tests
