@@ -17,7 +17,7 @@ from matplotlib.figure import Figure
 
 from utils.local_logger import LocalLogger
 
-PROJECT_NAME = 'Demo'  # TODO Set project name
+PROJECT_NAME = 'demo'  # TODO Set project name
 
 # Log format
 LOG_FORMAT_CONSOLE = '{time:HH:mm:ss.SSS} |<level>{level:>8}</level>| <level>{message}</level>'

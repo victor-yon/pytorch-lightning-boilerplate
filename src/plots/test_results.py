@@ -21,14 +21,15 @@ def plot_test_results(output_manager: OutputManager, metrics: MetricCollection, 
         return
 
     # Surround the plotting with a try-except block to avoid stopping the run if an error occurs
+    # noinspection PyBroadException
     try:
-        # Example of how to plot the confusion matrix using matplotlib and Weight and Biases.
+        # Plot the confusion matrix using matplotlib and Weight and Biases.
         plot_confusion_matrix(output_manager, metrics, confusion_matrix)
         if output_manager.enable_wandb:
             plot_confusion_matrix_wandb(confusion_matrix)
         # TODO add/edit plot test results functions
-    except Exception as e:
-        logger.error(f'An error occurred while plotting the test results: {e}', exc_info=True)
+    except Exception:
+        logger.exception(f'An error occurred while plotting the test results')
 
 
 def plot_confusion_matrix(output_manager: OutputManager, metrics: MetricCollection, confusion_matrix: Metric,
