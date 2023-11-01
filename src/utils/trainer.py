@@ -1,8 +1,11 @@
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Type
 
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import RichProgressBar, ModelSummary
+from loguru import logger
 
+from models.base_model import BaseModel
 from utils.output_manager import OutputManager
 
 
@@ -11,6 +14,7 @@ class ModelTrainer(Trainer):
 
     def __init__(self,
                  max_epochs: int = 50,
+                 load_model_path: Optional[str] = None,
                  val_check_interval: Optional[float] = 1,
                  accelerator: str = 'auto',
                  output_manager: OutputManager = None):
@@ -19,6 +23,9 @@ class ModelTrainer(Trainer):
 
         Args:
             max_epochs: The number of training epochs.
+            load_model_path: A path to a pickle file containing the parameter values to load.
+                If this path is set and valid, the model will be loaded from this file instead of training a new one.
+                The model architecture must be the same as the one defined in the model class.
             val_check_interval: The number of epochs between each validation. Set to None to disable validation.
             accelerator: The type of hardware accelerator to use for training and testing. Can be any from the following
                 list: "cpu", "gpu", "tpu", "ipu", "hpu", "mps, "auto" (see pytorch-lightning Trainer class for more
@@ -33,4 +40,33 @@ class ModelTrainer(Trainer):
 
         self.output_manager = output_manager
 
-        # TODO [template] override fit method to make to training optional or load model parameters for file
+        # If a load path defined, check it exists
+        if load_model_path is not None and load_model_path.strip() != '':
+            self.load_model_path = Path(load_model_path)
+
+            if not self.load_model_path.is_file():
+                raise FileNotFoundError(f'Cannot find the model file "{self.load_model_path.resolve()}"')
+
+        else:
+            self.load_model_path = None
+
+    def load_model_from_file(self, model_class: Type[BaseModel]) -> BaseModel:
+        """
+        Load the parameters of the model from a file.
+
+        Args:
+            model_class: The class of the model to load.
+
+        Returns:
+            The model with the parameters loaded from the file.
+        """
+        model = model_class.load_from_checkpoint(self.load_model_path)
+        # FIXME: In the MNIST example the test set will be different than the one used for training.
+        #   This will lead to artificially better accuracy.
+        #   An elegant way yo solve this would be to save and load the _split_seed attribute of the dataset as a state.
+        # Link the current output manager to the model
+        model.output_manager = self.output_manager
+
+        logger.info(f'Model parameters loaded from "{self.load_model_path}"')
+
+        return model

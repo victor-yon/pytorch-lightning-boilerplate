@@ -13,8 +13,11 @@ def run():
     # Initialize the model, the dataset, and the trainer, according to the configuration file and the program arguments
     model, datamodule, trainer = CLIConfig().get_run_objects()
 
-    # Training
-    trainer.fit(model, datamodule)
+    # Training or load the model from file
+    if trainer.load_model_path is not None:
+        model = trainer.load_model_from_file(model.__class__)
+    else:
+        trainer.fit(model, datamodule)
 
     # Testing
     trainer.test(model, datamodule)

@@ -100,6 +100,7 @@ class _LocalExperimentWriter(_ExperimentWriter):
     def __init__(self, log_dir: str) -> None:
         """ Override to remove already existing warning. """
         self.metrics: List[Dict[str, float]] = []
+        self.metrics_keys: List[str] = []
 
         self._fs = get_filesystem(log_dir)
         self.log_dir = log_dir
