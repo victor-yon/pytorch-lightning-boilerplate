@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-import re
 import sys
+import warnings
 from argparse import ArgumentError
 from pathlib import Path
 from typing import Iterable, Optional
@@ -207,7 +207,12 @@ class OutputManager:
         It should be called as early as possible in the program to make sure it catches all the logs.
         Once the user configuration is loaded, the handler will be overridden.
         """
-        logging.captureWarnings(True)  # Capture warnings with the logging system
+
+        def showwarning(message, category, filename, lineno, file=None, line=None):
+            """ Override the default show warning function to redirect it to the logger with appropriate meta-data. """
+            logger.patch(lambda r: r.update({'file': Path(filename).name, 'line': lineno})).warning(message)
+
+        warnings.showwarning = showwarning
 
         logger.configure(
             # Temporary handler that will be overridden after the user configuration is loaded
@@ -237,11 +242,6 @@ class OutputManager:
                     level = record.levelno
 
                 message = record.getMessage()
-
-                # Clean up user warnings
-                if level == 'WARNING':
-                    message = re.sub(r'.*UserWarning: ', '', message)
-                    message = re.sub(r'rank_zero_warn\(.*', '', message)
 
                 logger.opt(exception=record.exc_info).log(level, message.strip())
 
