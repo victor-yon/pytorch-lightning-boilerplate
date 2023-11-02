@@ -6,7 +6,6 @@ from typing import List, Optional
 import numpy as np
 import openml
 from lightning.pytorch import LightningDataModule
-from lightning.pytorch.accelerators import CUDAAccelerator
 from loguru import logger
 from numpy.typing import NDArray
 from tabulate import tabulate
@@ -133,20 +132,13 @@ class ProjectDataModule(LightningDataModule):
             # The trainer is not initialized yet, so we can't get the accelerator type
             return
 
-        accelerator = self.trainer.accelerator
+        # Try to detect the number of available CPU cores
+        try:
+            nb_workers = len(os.sched_getaffinity(0))
+        except AttributeError:
+            nb_workers = os.cpu_count()
 
-        if isinstance(accelerator, CUDAAccelerator):
-            # CUDA doesn't support multithreading for data loading
-            self._nb_workers = 0
-        else:
-            # Try to detect the number of available CPU
-            # noinspection PyBroadException
-            try:
-                nb_workers = len(os.sched_getaffinity(0))
-            except Exception:
-                nb_workers = os.cpu_count()
-
-            self._nb_workers = ceil(nb_workers / 2)  # The optimal number seems to be half of the cores
+        self._nb_workers = ceil(nb_workers / 2)  # The optimal number seems to be half of the cores
 
         logger.debug(f'Number of workers for data loading: {self._nb_workers}')
 
