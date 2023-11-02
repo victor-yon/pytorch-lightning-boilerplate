@@ -13,7 +13,8 @@ class ModelTrainer(Trainer):
     """ Model trainer """
 
     def __init__(self,
-                 max_epochs: int = 50,
+                 max_epochs: Optional[int] = 50,
+                 max_steps: Optional[int] = None,
                  load_model_path: Optional[str] = None,
                  val_check_interval: Optional[float] = 1,
                  accelerator: str = 'auto',
@@ -23,6 +24,9 @@ class ModelTrainer(Trainer):
 
         Args:
             max_epochs: The number of training epochs.
+            max_steps: The number of training steps.
+                If set, it will override the max_epochs parameter.
+                None, 0 or -1 will disable this parameter.
             load_model_path: A path to a pickle file containing the parameter values to load.
                 If this path is set and valid, the model will be loaded from this file instead of training a new one.
                 The model architecture must be the same as the one defined in the model class.
@@ -33,12 +37,16 @@ class ModelTrainer(Trainer):
             output_manager: A reference to the output manager of this project.
         """
         super().__init__(max_epochs=max_epochs,
+                         max_steps=max_steps or -1,
                          val_check_interval=val_check_interval,
                          accelerator=accelerator,
-                         logger=output_manager.loggers,
+                         logger=output_manager.loggers if output_manager else False,
                          callbacks=[RichProgressBar(), ModelSummary()])
 
         self.output_manager = output_manager
+
+        if max_epochs and max_epochs > 0 and max_steps and max_steps > 0:
+            logger.warning(f'Both "max_epochs" and "max_steps" are set. "max_steps" will be used ({max_steps:,d}).')
 
         # If a load path defined, check it exists
         if load_model_path is not None and load_model_path.strip() != '':

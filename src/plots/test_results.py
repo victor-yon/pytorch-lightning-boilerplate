@@ -17,7 +17,7 @@ def plot_test_results(output_manager: OutputManager, metrics: MetricCollection, 
     """
 
     # Check if it is necessary to create the plots
-    if not output_manager.is_plot_enabled():
+    if not (output_manager and output_manager.is_plot_enabled()):
         return
 
     # Surround the plotting with a try-except block to avoid stopping the run if an error occurs
